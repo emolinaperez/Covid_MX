@@ -1,6 +1,6 @@
 # Covid_MX
 
- This repository contains the following information
+ This repository contains the following information:
 
  1. Mathematical operationalization of EgobiernoyTP-SIR model (Covid19MX_2020_07_03.r)
  2. Function for estimating Theil's decomposition coefficients (Covid_MLE_2020_07_03.r)

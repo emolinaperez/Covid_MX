@@ -2,7 +2,11 @@
 # PART 1: Set up directory structure
 #=================================================================================================================
 #Set root directory
+#in pc
  root<-"C:~\\CovidModel_MX\\"
+#in cloud
+ root<-"D:\\2. Papers\\2. CovidAnalysis\\CovidModel_MX\\"
+
 #Source model
  dir.model<-paste0(root,"\\SupportingFunctions\\")
  model.version<-"Covid19MX_2020_07_03.r"
@@ -15,22 +19,27 @@
 
 #Data repositories
   dir.Indata<-paste0(root,"\\SupportingData\\")
-  calibration.date<-"2020_06_20"
-  dir.harness<-paste0(root,"\\params_mx_all_",calibration.date,"\\")
+  calibration.date<-"2020_07_04"
+  dir.harness<-paste0(root,"params_mx_all_",calibration.date,"\\")
   dir.Outdata<-paste0(root,"\\OutData\\")
+
+#Data files
+ io.table<-"IO_table_0612.csv"
+ mov.table<-"junio27_indicemov.csv"
+ pop.table<-"edades_final.csv"
 
 #===========================================================================================================
 # PART TWO: Load historical data and estimate MLE parameters
 #===========================================================================================================
 #Load data
- data_all<-read.csv(paste0(dir.Indata,"IO_table_0612.csv",sep=""))
+ data_all<-read.csv(paste0(dir.Indata,io.table,sep=""))
  data_all[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(data_all$Date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
  data_all$Date_new<-paste(data_all$Year,data_all$Month,data_all$Day,sep="-")
  data_all$Date_new<-as.Date(data_all$Date_new)
  data_all<-data_all[order(data_all$Year,data_all$Month,data_all$Day),]
 
 #read age cohors and adjust population numbers
- pop_cohorts<-read.csv(paste0(dir.Indata,"edades_final.csv",sep=""))
+ pop_cohorts<-read.csv(paste0(dir.Indata,pop.table,sep=""))
 
 #merge
  dim(data_all)
@@ -63,12 +72,20 @@
 
 
 #load movility data
-  mov_data<-read.csv(paste0(dir.Indata,"junio7_indicemov.csv",sep=""))
+  mov_data<-read.csv(paste0(dir.Indata,mov.table,sep=""))
+  mov_data$movilidad<-rowMeans(mov_data[,c(
+                                           "retail_and_recreation_percent_change_from_baseline",
+                                           "grocery_and_pharmacy_percent_change_from_baseline",
+                                           "transit_stations_percent_change_from_baseline",
+                                           "workplaces_percent_change_from_baseline"
+                                           )
+                                        ]
+                                )/100
   mov_data$Mov_Index<-mov_data$movilidad+1.0
   mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
   mov_data$Date_new<-paste(mov_data$Year,mov_data$Month,mov_data$Day,sep="-")
   mov_data$Date_new<-as.Date(mov_data$Date_new)
-  mov_data$Edo_code<-mov_data$entidadFed
+  mov_data$Edo_code<-mov_data$ENTIDAD
   mov_data$entidadFed<-NULL
   mov_data$date<-NULL
   mov_data$movilidad<-NULL
@@ -86,15 +103,16 @@
   data_all<-data_all[order(data_all$Year,data_all$Month,data_all$Day),]
 
 #set time series thersholds for calibration
-  Ws<-c(0.0,50,100,200,500,1000)
+  Ws<-c(0.0,50,100,200,500,1000,2000)
 
-for (j in 1:length(Ws))
-{
-# j<-6
+#for (j in 1:length(Ws))
+#{
+ j<-1
+
  W<-Ws[j]
 for (i in 1:length(region))
 {
- #i<-19
+ #i<-9
  data_real<-subset(data_all,Edo_code==region[i])
  data_real<-data_real[order(data_real$Year,data_real$Month,data_real$Day),]
  data_real$time<-c(0:(nrow(data_real)-1))
@@ -219,7 +237,8 @@ out<-genoud(covid_UMLE,max=FALSE,
   calib.params$value<-out$value
  write.csv(calib.params,paste(dir.harness,"params_",as.character(region[i]),"_",as.character(W),".csv",sep=""),row.names=FALSE)
  }
-}
+
+#}
 
 #
 #===========================================================================================================

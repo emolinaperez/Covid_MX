@@ -193,23 +193,3 @@ data_simulated_real<-data.frame(
  data$W<-W
  return(data)
 }
-
-data_calib<-apply(params,1,function(x){compare.calib(
-                                                     data_all,
-                                                     as.numeric(x['Region']),
-                                                     as.numeric(x['W']),
-                                                      c(
-                                                        as.numeric(x['Infectivity.e']),
-                                                        as.numeric(x['mortality.rate.base.e']),
-                                                        as.numeric(x['average.delay.time.e']),
-                                                        #as.numeric(x['Social.distancing.policy.e']),
-                                                        as.numeric(x['population.infected.with.COVID.e']),
-                                                        as.numeric(x['overburden.impact.e']),
-                                                        #as.numeric(x['Social.distancing.trigger.s1.e']),
-                                                        as.numeric(x['Average.Duration.Of.Infectivity.e']),
-                                                        as.numeric(x['hospitalization.rate.e']),
-                                                        as.numeric(x['Contact.Frequency.e'])
-                                                       )
-                                                      )
-                                        }
-                    )

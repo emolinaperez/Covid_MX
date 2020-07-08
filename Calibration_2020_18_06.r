@@ -4,6 +4,7 @@
 #Set root directory
 #in pc
  root<-"C:~\\CovidModel_MX\\"
+ root<-"C:\\Users\\L03054557\\OneDrive\\Edmundo-ITESM\\1.Articulos\\14. Covid Analysis\\CovidModel_MX\\"
 #in cloud
  root<-"D:\\2. Papers\\2. CovidAnalysis\\CovidModel_MX\\"
 
@@ -24,7 +25,7 @@
   dir.Outdata<-paste0(root,"\\OutData\\")
 
 #Data files
- io.table<-"IO_table_0612.csv"
+ io.table<-"IO_table_0630.csv"
  mov.table<-"junio27_indicemov.csv"
  pop.table<-"edades_final.csv"
 
@@ -294,16 +295,25 @@ rates<- apply(
  dim(data_all)
 
 
-#load mobility data
- mov_data<-read.csv(paste0(dir.Indata,"junio7_indicemov.csv",sep=""))
- mov_data$Mov_Index<-mov_data$movilidad+1.0
- mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
- mov_data$Date_new<-paste(mov_data$Year,mov_data$Month,mov_data$Day,sep="-")
- mov_data$Date_new<-as.Date(mov_data$Date_new)
- mov_data$Edo_code<-mov_data$entidadFed
- mov_data$entidadFed<-NULL
- mov_data$date<-NULL
- mov_data$movilidad<-NULL
+#load movility data
+  mov_data<-read.csv(paste0(dir.Indata,mov.table,sep=""))
+  mov_data$movilidad<-rowMeans(mov_data[,c(
+                                           "retail_and_recreation_percent_change_from_baseline",
+                                           "grocery_and_pharmacy_percent_change_from_baseline",
+                                           "transit_stations_percent_change_from_baseline",
+                                           "workplaces_percent_change_from_baseline"
+                                           )
+                                        ]
+                                )/100
+  mov_data$Mov_Index<-mov_data$movilidad+1.0
+  mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+  mov_data$Date_new<-paste(mov_data$Year,mov_data$Month,mov_data$Day,sep="-")
+  mov_data$Date_new<-as.Date(mov_data$Date_new)
+  mov_data$Edo_code<-mov_data$ENTIDAD
+  mov_data$entidadFed<-NULL
+  mov_data$date<-NULL
+  mov_data$movilidad<-NULL
+
 
 #merge movility data and historic data
 dim(data_all)
@@ -322,6 +332,28 @@ dim(data_all)
   dir.compare<-paste0(root,"\\SupportingFunctions\\")
   compare.version<-"CompareCalib_2020_07_03.r"
   source(paste(dir.compare,compare.version,sep=""))
+
+#run calibration 
+data_calib<-apply(params,1,function(x){compare.calib(
+                                                     data_all,
+                                                     as.numeric(x['Region']),
+                                                     as.numeric(x['W']),
+                                                      c(
+                                                        as.numeric(x['Infectivity.e']),
+                                                        as.numeric(x['mortality.rate.base.e']),
+                                                        as.numeric(x['average.delay.time.e']),
+                                                        #as.numeric(x['Social.distancing.policy.e']),
+                                                        as.numeric(x['population.infected.with.COVID.e']),
+                                                        as.numeric(x['overburden.impact.e']),
+                                                        #as.numeric(x['Social.distancing.trigger.s1.e']),
+                                                        as.numeric(x['Average.Duration.Of.Infectivity.e']),
+                                                        as.numeric(x['hospitalization.rate.e']),
+                                                        as.numeric(x['Contact.Frequency.e'])
+                                                       )
+                                                      )
+                                        }
+                    )
+
 
 #run compare calib
  data_calib<-do.call('rbind',data_calib)

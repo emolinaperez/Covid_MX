@@ -3,30 +3,30 @@
 #=================================================================================================================
 #Set root directory
 #in pc
- root<-"C:~\\CovidModel_MX\\"
+ #root<-"C:~\\CovidModel_MX\\"
  root<-"C:\\Users\\L03054557\\OneDrive\\Edmundo-ITESM\\1.Articulos\\14. Covid Analysis\\CovidModel_MX\\"
 #in cloud
  root<-"D:\\2. Papers\\2. CovidAnalysis\\CovidModel_MX\\"
 
 #Source model
- dir.model<-paste0(root,"\\SupportingFunctions\\")
+ dir.model<-paste0(root,"SupportingFunctions\\")
  model.version<-"Covid19MX_2020_07_03.r"
  source(paste(dir.model,model.version,sep=""))
 
 #Source MLE function
- dir.mle<-paste0(root,"\\SupportingFunctions\\")
+ dir.mle<-paste0(root,"SupportingFunctions\\")
  mle.version<-"Covid_MLE_2020_07_03.r"
  source(paste(dir.mle,mle.version,sep=""))
 
 #Data repositories
-  dir.Indata<-paste0(root,"\\SupportingData\\")
-  calibration.date<-"2020_07_04"
+  dir.Indata<-paste0(root,"SupportingData\\")
+  calibration.date<-"2020_07_12"
   dir.harness<-paste0(root,"params_mx_all_",calibration.date,"\\")
   dir.Outdata<-paste0(root,"\\OutData\\")
 
 #Data files
- io.table<-"IO_table_0630.csv"
- mov.table<-"junio27_indicemov.csv"
+ io.table<-"IO_table_0710.csv"
+ mov.table<-"julio7_indicemov.csv"
  pop.table<-"edades_final.csv"
 
 #===========================================================================================================
@@ -104,16 +104,16 @@
   data_all<-data_all[order(data_all$Year,data_all$Month,data_all$Day),]
 
 #set time series thersholds for calibration
-  Ws<-c(0.0,50,100,200,500,1000,2000)
+  Ws<-c(0.0,50,100,200,500,1000,2000,3000,4000)
 
-#for (j in 1:length(Ws))
-#{
- j<-1
+for (j in 1:length(Ws))
+{
+ #j<-7
 
  W<-Ws[j]
-for (i in 1:length(region))
-{
- #i<-9
+#for (i in 1:length(region))
+#{
+ i<-19
  data_real<-subset(data_all,Edo_code==region[i])
  data_real<-data_real[order(data_real$Year,data_real$Month,data_real$Day),]
  data_real$time<-c(0:(nrow(data_real)-1))
@@ -256,14 +256,14 @@ params<-do.call(rbind,params)
 
 
 # Load data
-data_all<-read.csv(paste0(dir.Indata,"IO_table_0612.csv",sep=""))
+data_all<-read.csv(paste0(dir.Indata,io.table,sep=""))
 data_all[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(data_all$Date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
 data_all$Date_new<-paste(data_all$Year,data_all$Month,data_all$Day,sep="-")
 data_all$Date_new<-as.Date(data_all$Date_new)
 data_all<-data_all[order(data_all$Year,data_all$Month,data_all$Day),]
 
 #read age cohors and adjust population numbers
-pop_cohorts<-read.csv(paste0(dir.Indata,"edades_final.csv",sep=""))
+pop_cohorts<-read.csv(paste0(dir.Indata,pop.table,sep=""))
 
 #merge
 dim(data_all)
@@ -333,7 +333,7 @@ dim(data_all)
   compare.version<-"CompareCalib_2020_07_03.r"
   source(paste(dir.compare,compare.version,sep=""))
 
-#run calibration 
+#run calibration
 data_calib<-apply(params,1,function(x){compare.calib(
                                                      data_all,
                                                      as.numeric(x['Region']),
@@ -362,38 +362,38 @@ data_calib<-apply(params,1,function(x){compare.calib(
 #keep succesful calibration runs
  params$index<-paste(params$Region,params$W,sep="_")
  keeps<-c(
-            "1_200",
-            "2_1000",
-            "3_200",
-            "4_500",
-            "5_500",
-            "6_50",
-            "7_500",
-            "8_500",
-            "9_50",
-            "10_50",
-            "11_500",
-            "12_50",
-            "13_1000",
-            "14_1000",
-            "15_0",
-            "16_1000",
-            "17_1000",
-            "18_50",
-            "19_100",
-            "20_500",
-            "21_1000",
-            "22_500",
-            "23_500",
-            "24_200",
-            "25_0",
-            "26_200",
-            "27_500",
-            "28_1000",
-            "29_1000",
-            "30_200",
-            "31_500",
-            "32_1000"
+            #"1_200",
+            #"2_1000",
+            #"3_200",
+            #"4_500",
+            #"5_500",
+            #"6_50",
+            #"7_500",
+            #"8_500",
+            #"9_50",
+            #"10_50",
+            #"11_500",
+            #"12_50",
+            #"13_1000",
+            #"14_1000",
+            #"15_0",
+            #"16_1000",
+            #"17_1000",
+            #"18_50",
+            "19_500"
+            #"20_500",
+            #"21_1000",
+            #"22_500",
+            #"23_500",
+            #"24_200",
+            #"25_0",
+            #"26_200",
+            #"27_500",
+            #"28_1000",
+            #"29_1000",
+            #"30_200",
+            #"31_500",
+            #"32_1000"
           )
 
 params<-subset(params,index%in%keeps)
@@ -410,7 +410,8 @@ params.names<-c(
                 )
 params<-params[,c(params.names,"Region","W")]
 
-write.csv(params,paste(dir.Outdata,"params_2020_06_20.csv",sep=""),row.names=FALSE)
+write.csv(params,paste(dir.Outdata,"params_2020_07_08.csv",sep=""),row.names=FALSE)
+
 write.csv(data_calib,paste(dir.Outdata,"data_calib.csv",sep=""),row.names=FALSE)
 
 #===========================================================================================================

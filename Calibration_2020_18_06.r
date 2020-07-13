@@ -193,7 +193,7 @@ out<-genoud(covid_UMLE,max=FALSE,
                           10, #average.delay.time
                           500,#population.infected.with.COVID
                           10, #overburden.impact
-                          10, #Average.Duration.Of.Infectivity
+                          5, #Average.Duration.Of.Infectivity
                           10, #hospitalization.rate
                           10#, #Contact.Frequency
                           #1.0, #Contact.traicing.trigger.s1

@@ -10,17 +10,17 @@
 
 #Source model
  dir.model<-paste0(root,"SupportingFunctions\\")
- model.version<-"Covid19MX_2020_07_03.r"
+ model.version<-"Covid19MX_2020_07_14.r"
  source(paste(dir.model,model.version,sep=""))
 
 #Source MLE function
  dir.mle<-paste0(root,"SupportingFunctions\\")
- mle.version<-"Covid_MLE_2020_07_03.r"
+ mle.version<-"Covid_MLE_2020_07_14.r"
  source(paste(dir.mle,mle.version,sep=""))
 
 #Data repositories
   dir.Indata<-paste0(root,"SupportingData\\")
-  calibration.date<-"2020_07_12_test1" #test1 is normal objective function with new data and constraint on infectivity duration, test2 is test with upated model and delay differentiaton, test3 tes 1 with  new objetive function
+  calibration.date<-"2020_07_12_test2" # test 2 is the new model with improved objective function considering rates too
   dir.harness<-paste0(root,"params_mx_all_",calibration.date,"\\")
   dir.Outdata<-paste0(root,"\\OutData\\")
 
@@ -108,9 +108,9 @@
 #set time series thersholds for calibration
   Ws<-c(0.0,50,100,200,500,1000,2000,3000,4000)
 
-#for (j in 1:length(Ws))
-#{
- j<-7
+for (j in 1:length(Ws))
+{
+# j<-1
  W<-Ws[j]
 #for (i in 1:length(region))
 #{
@@ -164,7 +164,7 @@ library(rgenoud)
 set.seed(55555)
 #Execute the optimization
 out<-genoud(covid_UMLE,max=FALSE,
-     nvars=8,
+     nvars=9,
      starting.values = c(
                          1.0,  #infectivity
                          1.0,  #mortality.rate.base
@@ -173,9 +173,10 @@ out<-genoud(covid_UMLE,max=FALSE,
                          1.20, #overburden.impact
                          0.5,   #Average.Duration.Of.Infectivity
                          1.0,    #hospitalization.rate
-                         1.0#,    #Contact.Frequency
+                         1.0,    #Contact.Frequency
                         # 0.10,   #Contact.traicing.trigger.s1
                         # 0.05   #Contact.traicing.policy
+                         1.0#,  #average.delay.timeD
                          ),
      pop.size=10000,
      Domains=matrix(c(#inferior limits
@@ -189,6 +190,7 @@ out<-genoud(covid_UMLE,max=FALSE,
                          0.01,   #Contact.Frequency
                          #0.01,   #Contact.traicing.trigger.s1
                          #0.00,   #Contact.traicing.policy
+                         0.01, #average.delay.timeD
                       #superior limits
                           10, #infectivity
                           10, #mortality.rate.base
@@ -197,9 +199,10 @@ out<-genoud(covid_UMLE,max=FALSE,
                           10, #overburden.impact
                           5, #Average.Duration.Of.Infectivity
                           10, #hospitalization.rate
-                          10#, #Contact.Frequency
+                          10, #Contact.Frequency
                           #1.0, #Contact.traicing.trigger.s1
                           #0.50 #Contact.traicing.policy
+                          10 #average.delay.timeD
                            ),
                           ncol=2),
      cluster=cl,
@@ -217,8 +220,8 @@ out<-genoud(covid_UMLE,max=FALSE,
        round(out$par[5],4),
        round(out$par[6],4),
        round(out$par[7],4),
-       round(out$par[8],4)#,
-       #round(out$par[9],4)#,
+       round(out$par[8],4),
+       round(out$par[9],4)#,
        #round(out$par[10],4),
        #round(out$par[11],4)
        )
@@ -233,11 +236,13 @@ out<-genoud(covid_UMLE,max=FALSE,
                               'hospitalization.rate.e',
                               #'Contact.traicing.trigger.s1.e',
                               #'Contact.traicing.policy.e',
-                              'Contact.Frequency.e'
+                              'Contact.Frequency.e',
+                              'average.delay.timeD.e'
                             )
   calib.params$Region<-region[i]
   calib.params$W<-W
   calib.params$value<-out$value
+  calib.params$tag<-"biass_only"
  write.csv(calib.params,paste(dir.harness,"params_",as.character(region[i]),"_",as.character(W),".csv",sep=""),row.names=FALSE)
  }
 
@@ -332,7 +337,7 @@ dim(data_all)
 
 #Source compare calibration function
   dir.compare<-paste0(root,"\\SupportingFunctions\\")
-  compare.version<-"CompareCalib_2020_07_03.r"
+  compare.version<-"CompareCalib_2020_07_14.r"
   source(paste(dir.compare,compare.version,sep=""))
 
 #run calibration
@@ -412,7 +417,7 @@ params.names<-c(
                 )
 params<-params[,c(params.names,"Region","W")]
 
-write.csv(params,paste(dir.Outdata,"params_2020_07_14.csv",sep=""),row.names=FALSE)
+write.csv(params,paste(dir.Outdata,"params_2020_07_08.csv",sep=""),row.names=FALSE)
 
 write.csv(data_calib,paste(dir.Outdata,"data_calib.csv",sep=""),row.names=FALSE)
 

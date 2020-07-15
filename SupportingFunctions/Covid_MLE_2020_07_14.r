@@ -35,7 +35,8 @@ parameters<-c( Infectivity = 0.2*max(c(0,round(x[1],4))), # [1] dimmensionless
                Health.system.carrying.capacity = as.numeric(unique(data_real$Hbedsx1000))*(as.numeric(unique(data_real$Pop))/1e6/1000),
                Average.Duration.Of.Infectivity = 10*max(c(0,round(x[6],4))), # days
                hospitalization.rate = 0.30*max(c(0,round(x[7],4))), #[1] dimmensionless
-               overburden.impact=0.03*max(c(0,round(x[5],4)))
+               overburden.impact=0.03*max(c(0,round(x[5],4))),
+               average.delay.timeD= 15*max(c(0,round(x[9],4))) #days
               )
 
 out <- ode(y = InitialConditions,
@@ -58,9 +59,10 @@ if (length(calib.times>0)) {
   calib.times<-subset(data_real,Confirmed.Cases>200)$time
   }
 
+tol<-1e6
 
-#
 #compare real data, versus simulated data (considering only rates)
+#
 #cases
   r_cases_real<-data_real$Hist.Infection.Rate.hp[data_real$time%in%calib.times]
   r_cases_simulated<-out$perceived.Infection.Rate[out$time%in%calib.times]*1e6
@@ -69,7 +71,6 @@ if (length(calib.times>0)) {
   r_deaths_simulated<-out$perceived.Death.Rate[out$time%in%calib.times]*1e6
 
 #compare cumulative values
-#
 #cases
   cases_real<-data_real$Confirmed.Cases[data_real$time%in%calib.times]
   cases_simulated<-out$perceived.Confirmed.Cases[out$time%in%calib.times]*1e6
@@ -140,8 +141,8 @@ tol<-1e6
 
 #Objective function
   # U<-0.5*U_M.1+0.5*U_M.2
-   #U<-0.25*U_M.1+0.25*U_M.2+0.25*U_S.1+0.25*U_S.2
-   U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4))
+   U<-0.25*U_M.1+0.25*U_M.2+0.25*U_S.1+0.25*U_S.2
+  # U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4))
 
  rm(out)
  rm(deaths_real)

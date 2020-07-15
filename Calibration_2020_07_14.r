@@ -20,7 +20,7 @@
 
 #Data repositories
   dir.Indata<-paste0(root,"SupportingData\\")
-  calibration.date<-"2020_07_12_test2" # test 2 is the new model with improved objective function considering rates too
+  calibration.date<-"2020_07_12_test4" # test 2 is the new model with improved objective function considering rates too
   dir.harness<-paste0(root,"params_mx_all_",calibration.date,"\\")
   dir.Outdata<-paste0(root,"\\OutData\\")
 

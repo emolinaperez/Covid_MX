@@ -141,7 +141,10 @@ tol<-1e6
 #Objective function
   # U<-0.5*U_M.1+0.5*U_M.2
    #U<-0.25*U_M.1+0.25*U_M.2+0.25*U_S.1+0.25*U_S.2
-   U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4))
+  # U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4)) # this function does not work, do not consider it ever again
+   #U<-0.25*U_M.3+0.25*U_M.4+0.25*U_S.3+0.25*U_S.4 #this did not work either, discard forever
+
+   U<-0.25*MSE.1+0.25*MSE.2+0.25*MSE.3+0.25*MSE.4
 
  rm(out)
  rm(deaths_real)

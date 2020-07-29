@@ -20,15 +20,15 @@
 
 #Data repositories
   dir.Indata<-paste0(root,"SupportingData\\")
-  calibration.date<-"2020_07_12_test1" #test1 is normal objective function with new data and constraint on infectivity duration, test2 is test with upated model and delay differentiaton, test3 tes 1 with  new objetive function
+  calibration.date<-"2020_07_28"
   dir.harness<-paste0(root,"params_mx_all_",calibration.date,"\\")
   dir.Outdata<-paste0(root,"\\OutData\\")
 
 #note: two experiments tomorrow a) rates in the objective function, b) times more flexible
 
 #Data files
- io.table<-"IO_table_0710.csv"
- mov.table<-"julio7_indicemov.csv"
+ io.table<-"IO_table_0725.csv"
+ mov.table<-"julio23_indicemov.csv"
  pop.table<-"edades_final.csv"
 
 #===========================================================================================================
@@ -85,7 +85,8 @@
                                         ]
                                 )/100
   mov_data$Mov_Index<-mov_data$movilidad+1.0
-  mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+  #mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+  mov_data[,c("Year","Month","Day")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"-"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
   mov_data$Date_new<-paste(mov_data$Year,mov_data$Month,mov_data$Day,sep="-")
   mov_data$Date_new<-as.Date(mov_data$Date_new)
   mov_data$Edo_code<-mov_data$ENTIDAD
@@ -110,7 +111,7 @@
 
 #for (j in 1:length(Ws))
 #{
- j<-7
+ #j<-1
  W<-Ws[j]
 #for (i in 1:length(region))
 #{
@@ -130,18 +131,18 @@ library(mFilter)
  data_real$Hist.Death.Rate.hp<- c(NA,hpfilter(data_real$Hist.Death.Rate[2:length(data_real$Hist.Death.Rate)],freq=100)$trend)
  data_real$Mov_Index.hp<- hpfilter(data_real$Mov_Index,freq=100)$trend
 
-#test1<-data_real[,c("Date_new","Hist.Infection.Rate","Hist.Death.Rate","Mov_Index","Confirmed.Cases")]
-#colnames(test1)<-c("Date_new","Hist.Infection.Rate","Hist.Death.Rate","Mov_Index","Confirmed.Cases")
-#test1$type<-"real"
-#test2<-data_real[,c("Date_new","Hist.Infection.Rate.hp","Hist.Death.Rate.hp","Mov_Index.hp","Confirmed.Cases")]
-#colnames(test2)<-c("Date_new","Hist.Infection.Rate","Hist.Death.Rate","Mov_Index","Confirmed.Cases")
-#test2$type<-"hp"
-#test<-rbind(test1,test2)
-#library(ggplot2)
-#ggplot(test,aes(x=Date_new,y=Hist.Infection.Rate,colour=type))+geom_line()
-#ggplot(test,aes(x=Date_new,y=Hist.Death.Rate,colour=type))+geom_line()
-#ggplot(test,aes(x=Date_new,y=Mov_Index,colour=type))+geom_line()
-#ggplot(test,aes(x=Date_new,y=Confirmed.Cases,colour=type))+geom_line()
+test1<-data_real[,c("Date_new","Hist.Infection.Rate","Hist.Death.Rate","Mov_Index","Confirmed.Cases")]
+colnames(test1)<-c("Date_new","Hist.Infection.Rate","Hist.Death.Rate","Mov_Index","Confirmed.Cases")
+test1$type<-"real"
+test2<-data_real[,c("Date_new","Hist.Infection.Rate.hp","Hist.Death.Rate.hp","Mov_Index.hp","Confirmed.Cases")]
+colnames(test2)<-c("Date_new","Hist.Infection.Rate","Hist.Death.Rate","Mov_Index","Confirmed.Cases")
+test2$type<-"hp"
+test<-rbind(test1,test2)
+library(ggplot2)
+ggplot(test,aes(x=Date_new,y=Hist.Infection.Rate,colour=type))+geom_line()
+ggplot(test,aes(x=Date_new,y=Hist.Death.Rate,colour=type))+geom_line()
+ggplot(test,aes(x=Date_new,y=Mov_Index,colour=type))+geom_line()
+ggplot(test,aes(x=Date_new,y=Confirmed.Cases,colour=type))+geom_line()
 
 #load mov_Data,
  Mov.Data <<- approxfun( x =  data_real$time, #times
@@ -239,7 +240,8 @@ out<-genoud(covid_UMLE,max=FALSE,
   calib.params$W<-W
   calib.params$value<-out$value
  write.csv(calib.params,paste(dir.harness,"params_",as.character(region[i]),"_",as.character(W),".csv",sep=""),row.names=FALSE)
- }
+
+#}
 
 #}
 
@@ -308,7 +310,8 @@ rates<- apply(
                                         ]
                                 )/100
   mov_data$Mov_Index<-mov_data$movilidad+1.0
-  mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+  #mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+  mov_data[,c("Year","Month","Day")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"-"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
   mov_data$Date_new<-paste(mov_data$Year,mov_data$Month,mov_data$Day,sep="-")
   mov_data$Date_new<-as.Date(mov_data$Date_new)
   mov_data$Edo_code<-mov_data$ENTIDAD
@@ -382,7 +385,7 @@ data_calib<-apply(params,1,function(x){compare.calib(
             #"16_1000",
             #"17_1000",
             #"18_50",
-            "19_500"
+            "19_4000"
             #"20_500",
             #"21_1000",
             #"22_500",
@@ -412,7 +415,7 @@ params.names<-c(
                 )
 params<-params[,c(params.names,"Region","W")]
 
-write.csv(params,paste(dir.Outdata,"params_2020_07_14.csv",sep=""),row.names=FALSE)
+write.csv(params,paste(dir.Outdata,"params_2020_07_28.csv",sep=""),row.names=FALSE)
 
 write.csv(data_calib,paste(dir.Outdata,"data_calib.csv",sep=""),row.names=FALSE)
 
@@ -465,7 +468,8 @@ write.csv(data_calib,paste(dir.Outdata,"data_calib.csv",sep=""),row.names=FALSE)
  #load movility data
   mov_data<-read.csv(paste0(dir.data,"junio7_indicemov.csv",sep=""))
   mov_data$Mov_Index<-mov_data$movilidad+1.0
-  mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+#  mov_data[,c("Day","Month","Year")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"/"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
+  mov_data[,c("Year","Month","Day")]<-do.call("rbind",lapply(strsplit(as.character(mov_data$date),"-"),function(x) { c(as.numeric(x[1]),as.numeric(x[2]),as.numeric(x[3]))   }))
   mov_data$Date_new<-paste(mov_data$Year,mov_data$Month,mov_data$Day,sep="-")
   mov_data$Date_new<-as.Date(mov_data$Date_new)
   mov_data$Edo_code<-mov_data$entidadFed

@@ -81,8 +81,28 @@ out<-subset(out,time%in%c(0:max(times)))
 
 
 #+++++++++++++++++++++++++++++++++++++
-calib.times<-subset(data_real,Confirmed.Cases>0)$time
 
+#
+
+calib.times<-subset(data_real,Confirmed.Cases>W)$time
+
+if (length(calib.times>0)) {
+  calib.times<-calib.times } else {
+  calib.times<-subset(data_real,Confirmed.Cases>200)$time
+  }
+
+
+#
+#compare real data, versus simulated data (considering only rates)
+#cases
+  r_cases_real<-data_real$Hist.Infection.Rate.hp[data_real$time%in%calib.times]
+  r_cases_simulated<-out$perceived.Infection.Rate[out$time%in%calib.times]*1e6
+#deaths
+  r_deaths_real<-data_real$Hist.Death.Rate.hp[data_real$time%in%calib.times]
+  r_deaths_simulated<-out$perceived.Death.Rate[out$time%in%calib.times]*1e6
+
+#compare cumulative values
+#
 #cases
   cases_real<-data_real$Confirmed.Cases[data_real$time%in%calib.times]
   cases_simulated<-out$perceived.Confirmed.Cases[out$time%in%calib.times]*1e6
@@ -105,34 +125,56 @@ calib.times<-subset(data_real,Confirmed.Cases>0)$time
 #  deaths_real<-deaths_real*w_d
 #  deaths_simulated<-deaths_simulated*w_d
 
+tol<-1e6
+
 #Use Theil's decomposition for minimizing model's error
 #cases
  cases.diff<-cases_real-cases_simulated
- cases.diff<-ifelse(cases.diff>100,100,cases.diff)
- cases.diff<-ifelse(cases.diff<(100*-1),-100,cases.diff)
+ cases.diff<-ifelse(cases.diff>tol,tol,cases.diff)
+ cases.diff<-ifelse(cases.diff<(tol*-1),-tol,cases.diff)
  MSE.1<-mean(cases.diff^2)
- sd.diff.1<-min(c(100,sd(cases_real)-sd(cases_simulated)))
+ sd.diff.1<-min(c(tol,sd(cases_real)-sd(cases_simulated)))
  U_S.1<-((sd.diff.1)^2)/MSE.1
- m.diff.1<-min(c(100,mean(cases_real)-mean(cases_simulated)))
+ m.diff.1<-min(c(tol,mean(cases_real)-mean(cases_simulated)))
  U_M.1<-((m.diff.1)^2)/MSE.1
 
 #deaths
  death.diff<-deaths_real-deaths_simulated
- death.diff<-ifelse(death.diff>100,100,death.diff)
- death.diff<-ifelse(death.diff<(100*-1),-100,death.diff)
+ death.diff<-ifelse(death.diff>tol,tol,death.diff)
+ death.diff<-ifelse(death.diff<(tol*-1),-tol,death.diff)
  MSE.2<-mean(death.diff^2)
- sd.diff.2<-min(c(100,sd(deaths_real)-sd(deaths_simulated)))
+ sd.diff.2<-min(c(tol,sd(deaths_real)-sd(deaths_simulated)))
  U_S.2<-((sd.diff.2)^2)/MSE.2
- m.diff.2<-min(c(100,mean(deaths_real)-mean(deaths_simulated)))
+ m.diff.2<-min(c(tol,mean(deaths_real)-mean(deaths_simulated)))
  U_M.2<-((m.diff.2)^2)/MSE.2
+#
 
+#rate of cases
+ r_cases.diff<-r_cases_real-r_cases_simulated
+ r_cases.diff<-subset(r_cases.diff,is.na(r_cases.diff)==FALSE)
+ r_cases.diff<-ifelse(r_cases.diff>tol,tol,r_cases.diff)
+ r_cases.diff<-ifelse(r_cases.diff<(tol*-1),-tol,r_cases.diff)
+ MSE.3<-mean(r_cases.diff^2)
+ sd.diff.3<-min(c(tol,sd(r_cases_real,na.rm=TRUE)-sd(r_cases_simulated,na.rm=TRUE)))
+ U_S.3<-((sd.diff.3)^2)/MSE.3
+ m.diff.3<-min(c(tol,mean(r_cases_real,na.rm=TRUE)-mean(r_cases_simulated,na.rm=TRUE)))
+ U_M.3<-((m.diff.3)^2)/MSE.3
 
+# death rate
+ r_death.diff<-r_deaths_real-r_deaths_simulated
+ r_death.diff<-subset(r_death.diff,is.na(r_death.diff)==FALSE)
+ r_death.diff<-ifelse(r_death.diff>tol,tol,r_death.diff)
+ r_death.diff<-ifelse(r_death.diff<(tol*-1),-tol,r_death.diff)
+ MSE.4<-mean(r_death.diff^2)
+ sd.diff.4<-min(c(tol,sd(r_deaths_real,na.rm=TRUE)-sd(r_deaths_simulated,na.rm=TRUE)))
+ U_S.4<-((sd.diff.4)^2)/MSE.4
+ m.diff.4<-min(c(tol,mean(r_deaths_real,na.rm=TRUE)-mean(r_deaths_simulated,na.rm=TRUE)))
+ U_M.4<-((m.diff.4)^2)/MSE.4
 
 #Objective function
   # U<-0.5*U_M.1+0.5*U_M.2
-   U<-0.25*U_M.1+0.25*U_M.2+0.25*U_S.1+0.25*U_S.2
-
-
+   #U<-0.25*U_M.1+0.25*U_M.2+0.25*U_S.1+0.25*U_S.2
+   #U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4))
 
 
 #+++++++++++++++++++++++++++++++++++++++
@@ -150,7 +192,10 @@ c(
  paste("06",as.character(c(1:30)),sep="-"),
  paste("07",as.character(c(1:31)),sep="-"),
  paste("08",as.character(c(1:31)),sep="-"),
- paste("09",as.character(c(1:30)),sep="-")
+ paste("09",as.character(c(1:30)),sep="-"),
+ paste("10",as.character(c(1:31)),sep="-"),
+ paste("11",as.character(c(1:30)),sep="-"),
+ paste("12",as.character(c(1:31)),sep="-")
 ),sep="-"))
 
 
@@ -168,6 +213,7 @@ data_simulated<-data.frame(
                             Infection.Rate=out$perceived.Infection.Rate*1e6,
                             Death.Rate=out$perceived.Death.Rate*1e6,
                             R0=out$R0,
+                            population.infected.with.COVID=out$perceived.population.infected.with.COVID*1e6,
                             type='simulation'
                             )
 
@@ -179,6 +225,7 @@ data_simulated_real<-data.frame(
                             Infection.Rate=out$perceived.Infection.Rate*1e6,
                             Death.Rate=out$perceived.Death.Rate*1e6,
                             R0=out$R0,
+                            population.infected.with.COVID=out$population.infected.with.COVID*1e6,
                             type='simulation real'
                             )
 
@@ -188,6 +235,7 @@ data_simulated_real<-data.frame(
  data_hist<-data_real[,c("Date_new","Confirmed.Cases","C.Deaths","Hist.Infection.Rate.hp","Hist.Death.Rate.hp")]
  colnames(data_hist)<-c("Date_new","Confirmed.Cases","C.Deaths","Infection.Rate","Death.Rate")
  data_hist$R0<-0
+ data_hist$population.infected.with.COVID<-0
  data_hist$type<-'real'
  data<-rbind(data_simulated,data_hist,data_simulated_real)
  data$Region<-region

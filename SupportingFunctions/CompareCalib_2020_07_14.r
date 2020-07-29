@@ -26,9 +26,9 @@ data_real$Mov_Index.hp<- hpfilter(data_real$Mov_Index,freq=100)$trend
                     rule = 2)
 
 #paramaters vector
-  x<-params[1,c('Infectivity.e','mortality.rate.base.e','average.delay.time.e','population.infected.with.COVID.e','overburden.impact.e','Average.Duration.Of.Infectivity.e','hospitalization.rate.e','Contact.Frequency.e','average.delay.timeD.e')]
-  x<-as.numeric(x)
-  covid_UMLE(x)
+#  x<-params[1,c('Infectivity.e','mortality.rate.base.e','average.delay.time.e','population.infected.with.COVID.e','overburden.impact.e','Average.Duration.Of.Infectivity.e','hospitalization.rate.e','Contact.Frequency.e','average.delay.timeD.e')]
+#  x<-as.numeric(x)
+#  covid_UMLE(x)
 #
 times <- seq(0 , #inicial time #days
              max(data_real$time),#+30, #end time #days
@@ -83,6 +83,7 @@ out<-subset(out,time%in%c(0:max(times)))
 
 #+++++++++++++++++++++++++++++++++++++
 #compare real data, versus simulated data
+#
 
 calib.times<-subset(data_real,Confirmed.Cases>W)$time
 
@@ -92,6 +93,7 @@ if (length(calib.times>0)) {
   }
 
 
+#
 #compare real data, versus simulated data (considering only rates)
 #cases
   r_cases_real<-data_real$Hist.Infection.Rate.hp[data_real$time%in%calib.times]
@@ -124,49 +126,56 @@ if (length(calib.times>0)) {
 #  deaths_real<-deaths_real*w_d
 #  deaths_simulated<-deaths_simulated*w_d
 
+tol<-1e6
+
 #Use Theil's decomposition for minimizing model's error
 #cases
  cases.diff<-cases_real-cases_simulated
- cases.diff<-ifelse(cases.diff>100,100,cases.diff)
- cases.diff<-ifelse(cases.diff<(100*-1),-100,cases.diff)
+ cases.diff<-ifelse(cases.diff>tol,tol,cases.diff)
+ cases.diff<-ifelse(cases.diff<(tol*-1),-tol,cases.diff)
  MSE.1<-mean(cases.diff^2)
- sd.diff.1<-min(c(100,sd(cases_real)-sd(cases_simulated)))
+ sd.diff.1<-min(c(tol,sd(cases_real)-sd(cases_simulated)))
  U_S.1<-((sd.diff.1)^2)/MSE.1
- m.diff.1<-min(c(100,mean(cases_real)-mean(cases_simulated)))
+ m.diff.1<-min(c(tol,mean(cases_real)-mean(cases_simulated)))
  U_M.1<-((m.diff.1)^2)/MSE.1
 
 #deaths
  death.diff<-deaths_real-deaths_simulated
- death.diff<-ifelse(death.diff>100,100,death.diff)
- death.diff<-ifelse(death.diff<(100*-1),-100,death.diff)
+ death.diff<-ifelse(death.diff>tol,tol,death.diff)
+ death.diff<-ifelse(death.diff<(tol*-1),-tol,death.diff)
  MSE.2<-mean(death.diff^2)
- sd.diff.2<-min(c(100,sd(deaths_real)-sd(deaths_simulated)))
+ sd.diff.2<-min(c(tol,sd(deaths_real)-sd(deaths_simulated)))
  U_S.2<-((sd.diff.2)^2)/MSE.2
- m.diff.2<-min(c(100,mean(deaths_real)-mean(deaths_simulated)))
+ m.diff.2<-min(c(tol,mean(deaths_real)-mean(deaths_simulated)))
  U_M.2<-((m.diff.2)^2)/MSE.2
+#
 
 #rate of cases
  r_cases.diff<-r_cases_real-r_cases_simulated
- r_cases.diff<-ifelse(r_cases.diff>100,100,r_cases.diff)
- r_cases.diff<-ifelse(r_cases.diff<(100*-1),-100,r_cases.diff)
+ r_cases.diff<-subset(r_cases.diff,is.na(r_cases.diff)==FALSE)
+ r_cases.diff<-ifelse(r_cases.diff>tol,tol,r_cases.diff)
+ r_cases.diff<-ifelse(r_cases.diff<(tol*-1),-tol,r_cases.diff)
  MSE.3<-mean(r_cases.diff^2)
- sd.diff.3<-min(c(100,sd(r_cases_real)-sd(r_cases_simulated)))
+ sd.diff.3<-min(c(tol,sd(r_cases_real,na.rm=TRUE)-sd(r_cases_simulated,na.rm=TRUE)))
  U_S.3<-((sd.diff.3)^2)/MSE.3
- m.diff.3<-min(c(100,mean(r_cases_real)-mean(r_cases_simulated)))
+ m.diff.3<-min(c(tol,mean(r_cases_real,na.rm=TRUE)-mean(r_cases_simulated,na.rm=TRUE)))
  U_M.3<-((m.diff.3)^2)/MSE.3
 
 # death rate
-#
  r_death.diff<-r_deaths_real-r_deaths_simulated
- r_death.diff<-ifelse(r_death.diff>100,100,r_death.diff)
- r_death.diff<-ifelse(r_death.diff<(100*-1),-100,r_death.diff)
+ r_death.diff<-subset(r_death.diff,is.na(r_death.diff)==FALSE)
+ r_death.diff<-ifelse(r_death.diff>tol,tol,r_death.diff)
+ r_death.diff<-ifelse(r_death.diff<(tol*-1),-tol,r_death.diff)
  MSE.4<-mean(r_death.diff^2)
- sd.diff.4<-min(c(100,sd(r_deaths_real)-sd(r_deaths_simulated)))
+ sd.diff.4<-min(c(tol,sd(r_deaths_real,na.rm=TRUE)-sd(r_deaths_simulated,na.rm=TRUE)))
  U_S.4<-((sd.diff.4)^2)/MSE.4
- m.diff.4<-min(c(100,mean(r_deaths_real)-mean(r_deaths_simulated)))
+ m.diff.4<-min(c(tol,mean(r_deaths_real,na.rm=TRUE)-mean(r_deaths_simulated,na.rm=TRUE)))
  U_M.4<-((m.diff.4)^2)/MSE.4
 
-U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4))
+#Objective function
+  # U<-0.5*U_M.1+0.5*U_M.2
+   #U<-0.25*U_M.1+0.25*U_M.2+0.25*U_S.1+0.25*U_S.2
+   U<-mean(c(U_M.1,U_M.2,U_M.3,U_M.4,U_S.1,U_S.2,U_S.3,U_S.4))
 
 
 #+++++++++++++++++++++++++++++++++++++++

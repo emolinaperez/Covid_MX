@@ -20,7 +20,7 @@
 
 #Data repositories
   dir.Indata<-paste0(root,"SupportingData\\")
-  calibration.date<-"2020_07_12_test4" # test 2 is the new model with improved objective function considering rates too
+  calibration.date<-"2020_07_12_test2" # test 2 is the new model with improved objective function considering rates too
   dir.harness<-paste0(root,"params_mx_all_",calibration.date,"\\")
   dir.Outdata<-paste0(root,"\\OutData\\")
 
@@ -242,7 +242,6 @@ out<-genoud(covid_UMLE,max=FALSE,
   calib.params$Region<-region[i]
   calib.params$W<-W
   calib.params$value<-out$value
-  calib.params$tag<-"biass_only"
  write.csv(calib.params,paste(dir.harness,"params_",as.character(region[i]),"_",as.character(W),".csv",sep=""),row.names=FALSE)
  }
 
@@ -355,7 +354,8 @@ data_calib<-apply(params,1,function(x){compare.calib(
                                                         #as.numeric(x['Social.distancing.trigger.s1.e']),
                                                         as.numeric(x['Average.Duration.Of.Infectivity.e']),
                                                         as.numeric(x['hospitalization.rate.e']),
-                                                        as.numeric(x['Contact.Frequency.e'])
+                                                        as.numeric(x['Contact.Frequency.e']),
+                                                        as.numeric(x['average.delay.timeD.e'])
                                                        )
                                                       )
                                         }

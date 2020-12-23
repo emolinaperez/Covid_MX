@@ -8,4 +8,4 @@
  4. Main script for calibrating the model (Calibration_2020_18_06.r)
  5. Data sets used in the analysis (\\SupportingData)
 
-We well be updating this repository frequently during the comming months. If you have comments of questions please contact us at edmundo.molina@tec.mx  
+We will be updating this repository frequently during the comming months. If you have comments of questions please contact us at edmundo.molina@tec.mx  
